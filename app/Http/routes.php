@@ -1,33 +1,14 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Routes File
-|--------------------------------------------------------------------------
-|
-| Here is where you will register all of the routes in an application.
-| It's a breeze. Simply tell Laravel the URIs it should respond to
-| and give it the controller to call when that URI is requested.
-|
-*/
+// List
+Route::get('list/get', 'ListController@index');
+Route::get('list/get/{id}', 'ListController@detail');
+Route::post('list/add', 'ListController@add');
+Route::post('list/update', 'ListController@update');
+Route::get('list/remove', 'ListController@remove'); // todo
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('market', 'Market@index');
-Route::get('detail/{id}', 'Detail@index');
-/*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| This route group applies the "web" middleware group to every route
-| it contains. The "web" middleware group is defined in your HTTP
-| kernel and includes session state, CSRF protection, and more.
-|
-*/
-
-Route::group(['middleware' => ['web']], function () {
-    //
-});
+// User
+// todo
+//Route::login('login', 'Auth\AuthController@login');
+Route::get('login', 'UserController@login');
+Route::post('register','UserController@register');
