@@ -13,9 +13,24 @@
 
 $factory->define(App\User::class, function (Faker\Generator $faker) {
     return [
-        'name' => $faker->name,
+        'username' => $faker->sentence,
         'email' => $faker->safeEmail,
         'password' => bcrypt(str_random(10)),
+        'wechat_openid' => $faker->randomNumber(),
         'remember_token' => str_random(10),
+    ];
+});
+
+$factory->define(App\Act::class, function (Faker\Generator $faker) {
+    return [
+        'name' => $faker->sentence,
+        'creator_uid' => $faker->randomNumber(),
+        'people1_uid' => $faker->randomNumber(),
+        'people2_uid' => $faker->randomNumber(),
+        'people3_uid' => $faker->randomNumber(),
+        'from' => $faker->sentence,
+        'to' => $faker->sentence,
+        'expectedNumber' => $faker->randomDigit,
+        'state' => $faker->numberBetween(0, 1),
     ];
 });

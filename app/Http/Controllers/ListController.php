@@ -14,14 +14,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Input;
+use App\JsonGeneral;
 
 final class ListController extends Controller
 {
     private $userController;
+    private $jsonGeneral;
 
-    public function __construct(UserController $userController)
+    public function __construct(UserController $userController, JsonGeneral $jsonGeneral)
     {
         $this->userController = $userController;
+        $this->jsonGeneral = $jsonGeneral;
     }
 
     /**
@@ -98,33 +101,55 @@ final class ListController extends Controller
      * 创建一个订单
      *
      * @param info
-     * @return bool
+     * @return bool->status
      */
     public function add()
     {
-        $creator = Input::get('creator');
+        //$creator = Input::get('creator');
+
+        //$state = Input::get('state');
+        //$people[] = Input::get('people');
+
+        $creator_wechat_openid = Input::get('creator');
         $name = Input::get('name');
-        $people[] = Input::get('people');
         $from = Input::get('from');
         $to = Input::get('to');
         $expectedNumber = Input::get('expectedNum');
-        $state = Input::get('state');
-        DB::table('act')->insert([
-            'creator' => $creator,
-            'name' => $name,
-            // todo 需要转换一下uid
-        ]);
+        if ($this->userController->get_uid_by_wechat_id($creator_wechat_openid)) {
+            try {
+                DB::table('act')->insert([
+                    'name' => $name,
+                    'creator_uid' => $this->userController->get_uid_by_wechat_id($creator_wechat_openid),
+                    'people1_uid' => -1,
+                    'people2_uid' => -1,
+                    'people3_uid' => -1,
+                    'from' => $from,
+                    'to' => $to,
+                    'expectedNumber' => $expectedNumber,
+                    'state' => 0,
+                ]);
+                return $this->jsonGeneral->show_success();  //Use redirect and session ?
+            } catch (Exception $e) {
+                return $this->jsonGeneral->show_error("Database error");
+            }
+        } else {
+            return $this->jsonGeneral->show_error("Invalid wechat_id");
+        }
+
+
     }
 
     /**
      * 更新一个订单
-     *
+     * @todo
      * @param $id
      * @param $info
      */
-    public function update($id, $info)
+    public function update()  //Post
     {
-
+        $act_id = Input::get('act_id');
+        $info = Input::get('info');
+        return Redirect::to('home');
     }
 
     /**
@@ -134,9 +159,20 @@ final class ListController extends Controller
      *
      * @todo
      * @param $id
+     * @return status
      */
     public function remove($id)
     {
         // remove according to id.
+        try {
+            $res = DB::delete('delete from act WHERE act_id = ?', [$id]);  //The other act_id(s) will not change
+        } catch (Exception $e) {
+            return $this->jsonGeneral->show_error("Database error");
+        }
+        if ($res) {
+            return $this->jsonGeneral->show_success(); //Use redirect and sessions?
+        } else {
+            return $this->jsonGeneral->show_error("Invalid act id");
+        }
     }
 }
