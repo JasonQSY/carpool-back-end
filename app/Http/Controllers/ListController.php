@@ -15,6 +15,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Input;
 use App\JsonGeneral;
+use Illuminate\Support\Facades\Redirect;
 
 final class ListController extends Controller
 {
@@ -149,7 +150,7 @@ final class ListController extends Controller
     {
         $act_id = Input::get('act_id');
         $info = Input::get('info');
-        return Redirect::to('home');
+        return Redirect::to('list/get');  //Temporarily redirect to list/get
     }
 
     /**
