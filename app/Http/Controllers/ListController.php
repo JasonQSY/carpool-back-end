@@ -19,7 +19,14 @@ use Illuminate\Support\Facades\Redirect;
 
 final class ListController extends Controller
 {
+    /**
+     * @var \App\Http\Controllers\UserController
+     */
     private $userController;
+
+    /**
+     * @var JsonGeneral
+     */
     private $jsonGeneral;
 
     public function __construct(UserController $userController, JsonGeneral $jsonGeneral)
@@ -146,11 +153,51 @@ final class ListController extends Controller
      * @param $id
      * @param $info
      */
-    public function update()  //Post
+    public function creatorUpdate($id)  //Post
     {
-        $act_id = Input::get('act_id');
-        $info = Input::get('info');
-        return Redirect::to('list/get');  //Temporarily redirect to list/get
+        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
+        $item = $list[0];
+        $name = Input::get('name');
+        $from = Input::get('from');
+        $to = Input::get('to');
+        $expectedNumber = Input::get('expectedNumber');
+        $state = Input::get('state');
+        if ($name) {
+            DB::table('act')->where('id',$id)->update(['name' => $name]);
+        }
+        if ($from) {
+            DB::table('act')->where('id',$id)->update(['from' => $from]);
+        }
+        if ($to) {
+            DB::table('act')->where('id',$id)->update(['to' => $to]);
+        }
+        if ($expectedNumber >= $item->expectedNumber){
+            DB::table('act')->where('id',$id)->update(['expectedNumber' => $expectedNumber]);
+        }
+        if ($state===0 || $state===1) {
+            DB::table('act')->where('id',$id)->update(['state' => $state]);
+        }
+    }
+
+    public  function peopleDropout($id, $people_uid)
+    {
+        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
+        $item = $list[0];
+        switch ($people_uid) {
+            case $item->people1_uid :
+                DB::table('act')->where('id',$id)->update(['people1_uid' => -1]);
+                break;
+            case $item->people2_uid :
+                DB::table('act')->where('id',$id)->update(['people2_uid' => -1]);
+                break;
+            case $item->people3_uid :
+                DB::table('act')->where('id',$id)->update(['people3_uid' => -1]);
+                break;
+            default :
+                return $this->jsonGeneral->show_error("Invalid User");
+        }
+        
+
     }
 
     /**
