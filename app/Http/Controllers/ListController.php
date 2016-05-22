@@ -16,6 +16,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Input;
 use App\JsonGeneral;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Session;
 
 final class ListController extends Controller
 {
