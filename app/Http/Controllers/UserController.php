@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use App\JsonGeneral;
 use Illuminate\Support\Facades\Input;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 final class UserController extends Controller
 {
@@ -22,11 +23,14 @@ final class UserController extends Controller
      * @var App\JsonGeneral
      */
     private $jsonGeneral;
-
+    private $appid = '';
+    private $appsecret = '';
     /**
      * UserController constructor.
      * 
      * @param JsonGeneral $jsonGeneral
+     * @param string $appid
+     * @param string $appsecret
      */
     public function __construct(JsonGeneral $jsonGeneral)
     {
@@ -120,6 +124,47 @@ final class UserController extends Controller
     }
 
     /**
+     * Get code for weixin authorization
+     *
+     * @param string $redirect_uri
+     * @return string
+     */
+/*    public function getCodeUrl($redirect_uri) {
+        $url = 'https://open.weixin.qq.com/connect/oauth2/authorize?' . 'appid=' . strval($this->appid) . '&redirect_uri=' . urlencode($redirect_uri) . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect' ;
+        return $url;
+    }*/
+
+    /**
+     * Get code for weixin access_token
+     *
+     * @param $code,
+     * @return mixed
+     */
+    public function getAccessToken() {
+        $code = Input::get('code');
+        if (!$code) {
+            return $this->jsonGeneral->show_error("Invalid weixin code");
+        }
+        $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . strval($this->appid) . '&secret=' . strval($this->appsecret) . '&code=' . strval($code) . '&grant_type=authorization_code';
+        $user_ch = curl_init();
+        curl_setopt($user_ch, CURLOPT_URL, $url);
+        curl_setopt($user_ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($user_ch, CURLOPT_CONNECTTIMEOUT, 10);
+        $user_data = curl_exec($user_ch);
+        curl_close($user_ch);
+        $user_json = json_decode($user_data, true);
+        if (!$user_json) {
+            return $this->jsonGeneral->show_error('Error Code');
+        } else {
+            if (isset($user_json['errcode'])) {
+                return $this->jsonGeneral->show_error('Error Code');
+            } else {
+                return $user_json;
+            }
+        }
+    }
+
+    /**
      * 查不到 FALSE
      *
      * @return bool | int
@@ -128,6 +173,8 @@ final class UserController extends Controller
         $wechat_id = Input::get('wechat_openid');
         $token = Input::get('access_token');
         $result = DB::select('select * from users where wechat_openid = ?', [$wechat_id]);
+        $session = new Session();
+        $session->set('uid', $wechat_id);
         if (! $result) {
             $user = new User;
             try {
@@ -145,6 +192,7 @@ final class UserController extends Controller
                         return $this->jsonGeneral->show_error('Can not get wechat nickname');
                     }
                     $user->username = $user_json['nickname'];
+                    $session->set('uid', $wechat_id);
                     return $this->jsonGeneral->show_success($user->username);
                 } else {
                     return $this->jsonGeneral->show_error('Invalid wechat_openid or access_token');
@@ -153,6 +201,7 @@ final class UserController extends Controller
                 return $this->jsonGeneral->show_error('Invalid wechat_openid or access_token');
             }
         } else {
+            $session->set('uid', $wechat_id);
             return json_encode($result);
         }
     }
