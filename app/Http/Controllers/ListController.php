@@ -9,12 +9,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Models\Act_model;
+use App\Http\Requests\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-//use App\Http\Requests\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Input;
-use App\JsonGeneral;
+use App\Libraries\JsonGeneral;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 
@@ -44,7 +46,7 @@ final class ListController extends Controller
     public function index()
     {
         $returnList = [];
-        $list = DB::select('select * from act WHERE state = ?', [0]);
+        $list = Act_model::where('state', 0)->get();
         foreach ($list as $item) {
             $creator = $this->userController->get_username_by_uid($item->creator_uid);
             $people = [];
@@ -67,20 +69,22 @@ final class ListController extends Controller
                 'state' => $item->state
             ];
         }
-
-        // 其实response应该封装进lib,但是先算了吧
-        return response()->json($returnList);
+        return $this->jsonGeneral->show_success($returnList);
     }
 
     /**
      * 获取一个订单的具体信息
      *
      * @param $id
+     * @return mixed
      */
     public function detail($id)
     {
-        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
-        $item = $list[0];
+        $item = Act_model::find($id);
+        if (empty($item)) {
+            return $this->jsonGeneral->show_error('id not found');
+        }
+
         $creator = $this->userController->get_username_by_uid($item->creator_uid);
         $people = [];
         if ($item->people1_uid !== -1) {
@@ -101,51 +105,29 @@ final class ListController extends Controller
             'expectedNum' => $item->expectedNumber,
             'state' => $item->state
         ];
-
-        // 其实response应该封装进lib,但是先算了吧
-        return response()->json($returnItem);
+        return $this->jsonGeneral->show_success($returnItem);
     }
 
     /**
      * 创建一个订单
      *
-     * @param info
+     * @param $request
      * @return bool->status
      */
-    public function add()
+    public function add(Request $request)
     {
-        //$creator = Input::get('creator');
-
-        //$state = Input::get('state');
-        //$people[] = Input::get('people');
-
-        $creator_wechat_openid = Input::get('creator');
-        $name = Input::get('name');
-        $from = Input::get('from');
-        $to = Input::get('to');
-        $expectedNumber = Input::get('expectedNum');
-        if ($this->userController->get_uid_by_wechat_id($creator_wechat_openid)) {
-            try {
-                DB::table('act')->insert([
-                    'name' => $name,
-                    'creator_uid' => $this->userController->get_uid_by_wechat_id($creator_wechat_openid),
-                    'people1_uid' => -1,
-                    'people2_uid' => -1,
-                    'people3_uid' => -1,
-                    'from' => $from,
-                    'to' => $to,
-                    'expectedNumber' => $expectedNumber,
-                    'state' => 0,
-                ]);
-                return $this->jsonGeneral->show_success();  //Use redirect and session ?
-            } catch (Exception $e) {
-                return $this->jsonGeneral->show_error("Database error");
-            }
-        } else {
-            return $this->jsonGeneral->show_error("Invalid wechat_id");
-        }
-
-
+        $act = new Act_model();
+        $act->creator = $request->user()->uid;
+        $act->name = $request->input('name');
+        $act->from = $request->input('from');
+        $act->to = $request->input('to');
+        $act->expectedNum = $request->input('expectedNum');
+        $act->people1 = -1;
+        $act->people2 = -1;
+        $act->people3 = -1;
+        $act->state = 0;
+        $act->save();
+        return $this->jsonGeneral->show_success();
     }
 
     /**
@@ -154,10 +136,10 @@ final class ListController extends Controller
      * @param $id
      * @param $info
      */
-    public function creatorUpdate($id)  //Post
+    public function creatorUpdate(Request $request)  //Post
     {
-        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
-        $item = $list[0];
+        $act_id = $request->input('act_id');
+        $item = Act_model::find($act_id);
         $name = Input::get('name');
         $from = Input::get('from');
         $to = Input::get('to');
@@ -180,10 +162,15 @@ final class ListController extends Controller
         }
     }
 
-    public  function peopleDropout($id, $people_uid)
+    public  function peopleDropout(Request $request)
     {
-        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
-        $item = $list[0];
+        $act_id = $request->input('act_id');
+        $people_uid = $request->user()->uid;
+        $act = Act_model::find($act_id);
+        if (empty($act)) {
+            return $this->jsonGeneral->show_error();
+        }
+
         switch ($people_uid) {
             case $item->people1_uid :
                 DB::table('act')->where('id',$id)->update(['people1_uid' => -1]);
@@ -197,8 +184,6 @@ final class ListController extends Controller
             default :
                 return $this->jsonGeneral->show_error("Invalid User");
         }
-        
-
     }
 
     /**
@@ -208,11 +193,14 @@ final class ListController extends Controller
      *
      * @todo
      * @param $id
-     * @return status
+     * @return mixed
      */
     public function remove($id)
     {
+        return $this->jsonGeneral->show_error('Not supported');
+
         // remove according to id.
+        /*
         try {
             $res = DB::delete('delete from act WHERE act_id = ?', [$id]);  //The other act_id(s) will not change
         } catch (Exception $e) {
@@ -222,6 +210,6 @@ final class ListController extends Controller
             return $this->jsonGeneral->show_success(); //Use redirect and sessions?
         } else {
             return $this->jsonGeneral->show_error("Invalid act id");
-        }
+        }*/
     }
 }

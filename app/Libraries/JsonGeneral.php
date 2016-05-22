@@ -34,7 +34,6 @@ final class JsonGeneral
     public function show_success($msg = 'success')
     {
         $this->json_data['error'] = 0;
-        $this->json_data['status'] = 'success';
         $this->json_data['msg'] = $msg;
         return response()->json($this->json_data);
     }
@@ -46,7 +45,6 @@ final class JsonGeneral
     public function show_error($msg = 'error')
     {
         $this->json_data['error'] = 1;
-        $this->json_data['status'] = 'error';
         $this->json_data['msg'] = $msg;
         return response()->json($this->json_data);
     }
