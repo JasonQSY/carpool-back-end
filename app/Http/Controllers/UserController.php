@@ -9,32 +9,41 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Request;
 use App\User;
 use Illuminate\Support\Facades\DB;
-//use App\Http\Requests\Request;
 use Illuminate\Http\Response;
-use App\JsonGeneral;
+use App\Libraries\JsonGeneral;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Session\Session;
+use App\Libraries\CurlLib;
 
 final class UserController extends Controller
 {
     /**
-     * @var App\JsonGeneral
+     * @var App\Libraries\JsonGeneral
      */
     private $jsonGeneral;
+
+    /**
+     * @var CurlLib
+     */
+    private $curl_lib;
+    
     private $appid = '';
     private $appsecret = '';
+    
     /**
      * UserController constructor.
      * 
      * @param JsonGeneral $jsonGeneral
-     * @param string $appid
-     * @param string $appsecret
+     * @param CurlLib $curlLib
      */
-    public function __construct(JsonGeneral $jsonGeneral)
+    public function __construct(JsonGeneral $jsonGeneral, CurlLib $curlLib)
     {
         $this->jsonGeneral = $jsonGeneral;
+        $this->curl_lib = $curlLib;
     }
 
     /**
@@ -42,7 +51,21 @@ final class UserController extends Controller
      */
     public function login()
     {
+        if (!empty(Input::get('code'))) {
+            // redirect
+            $this_url = urlencode(url('login')); //todo
+            $gate_url = "http://www.weixingate.com/api/v1/wgate_oauth?back=$this_url&force=1";
+            redirect('$gate_url');
+        } else {
+            // read
+            $wechat_code = Input::get('code');
+            $wechat_wgateid = $this->curl_lib->get_from("http://api.weixingate.com/v1/wgate_oauth/userinfo?code=$wechat_code");
+            $result = DB::select('select * from users where wechat_openid = ?', [$wechat_wgateid]);
+            if ($result) {
+                $uid =
+            }
 
+        }
     }
 
     /**

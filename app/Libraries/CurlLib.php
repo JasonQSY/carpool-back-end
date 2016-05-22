@@ -6,6 +6,8 @@
  * Time: 6:46 PM
  */
 
+namespace App\Libraries;
+
 /**
  * Class CurlLib
  *

@@ -12,9 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 
 final class User_model extends Model
 {
-    public function __construct()
-    {
-        parent::__construct();
-        // do something
-    }
+    /**
+     * @var string
+     */
+    protected $table = "users";
+
+    /**
+     * @var string
+     */
+    protected $primaryKey = "uid";
 }
