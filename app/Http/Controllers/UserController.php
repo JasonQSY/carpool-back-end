@@ -129,7 +129,8 @@ final class UserController extends Controller
      * @param string $redirect_uri
      * @return string
      */
-    public function getCodeUrl($redirect_uri) {
+    public function getCodeUrl() {
+        $redirect_uri = Input::get('redirect_uri');
         $url = 'https://open.weixin.qq.com/connect/oauth2/authorize?' . 'appid=' . strval($this->appid) . '&redirect_uri=' . urlencode($redirect_uri) . '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect' ;
         return $url;
     }
