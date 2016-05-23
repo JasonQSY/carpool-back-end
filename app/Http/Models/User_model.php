@@ -8,9 +8,9 @@
 
 namespace App\Http\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-final class User_model extends Model
+final class User_model extends Authenticatable
 {
     /**
      * @var string

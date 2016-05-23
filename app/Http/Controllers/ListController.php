@@ -122,18 +122,15 @@ final class ListController extends Controller
      */
     public function add(Request $request)
     {
-        //$this->middleware('auth');
-        //return $this->jsonGeneral->show_success();
-
         $act = new Act_model();
-        $act->creator = $request->user()->uid;
+        $act->creator_uid = $request->user()->uid;
         $act->name = $request->input('name');
         $act->from = $request->input('from');
         $act->to = $request->input('to');
-        $act->expectedNum = $request->input('expectedNum');
-        $act->people1 = -1;
-        $act->people2 = -1;
-        $act->people3 = -1;
+        $act->expectedNumber = $request->input('expectedNum');
+        $act->people1_uid = -1;
+        $act->people2_uid = -1;
+        $act->people3_uid = -1;
         $act->state = 0;
         $act->save();
         return $this->jsonGeneral->show_success();
@@ -147,11 +144,15 @@ final class ListController extends Controller
     public function creatorUpdate(Request $request)  //Post
     {
         $act_id = $request->input('act_id');
+        $result = Act_model::where('act_id', $act_id)->get()->first();
+        if (!$result) {
+            return $this->jsonGeneral->show_error('Invalid act id');
+        }
         $item = Act_model::find($act_id);
         $name = Input::get('name');
         $from = Input::get('from');
         $to = Input::get('to');
-        $expectedNumber = Input::get('expectedNumber');
+        $expectedNumber = Input::get('expectedNum');
         $state = Input::get('state');
         if ($name) {
             DB::table('act')->where('id',$id)->update(['name' => $name]);
