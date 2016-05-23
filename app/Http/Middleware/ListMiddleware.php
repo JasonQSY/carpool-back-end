@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Symfony\Component\HttpFoundation\Session\Session;
-use App\JsonGeneral;
+use App\Libraries\JsonGeneral;
 
 class ListMiddleware
 {
@@ -20,8 +20,7 @@ class ListMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $session = new Session();
-        if ($session->has('uid')) {
+        if ($request->session()->has('wx_id')) {
             return $next($request);
         } else {
             return $this->jsonGeneral->show_error("Sessions Outdated or Invalid");

@@ -12,11 +12,30 @@ use Illuminate\Database\Eloquent\Model;
 
 final class Act_model extends Model
 {
-    public function __construct()
+    /**
+     * @var string
+     */
+    protected $table = "act";
+
+    /**
+     * @var string
+     */
+    protected $primaryKey = "act_id";
+
+    /*
+    public function get_current_number($id)
     {
-        parent::__construct();
-        // do something
-    }
-    
-    
+        $item = $this->find($id);
+        $number = 0;
+        if ($item['people1_uid'] !== -1) {
+            $number += 1;
+        }
+        if ($item['people2_uid'] !== -1) {
+            $number += 1;
+        }
+        if ($item['people3_uid'] !== -1) {
+            $number += 1;
+        }
+        return $number;
+    }*/
 }

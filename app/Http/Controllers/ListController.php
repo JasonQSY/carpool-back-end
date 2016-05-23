@@ -9,18 +9,26 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Models\Act_model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-//use App\Http\Requests\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Input;
-use App\JsonGeneral;
+use App\Libraries\JsonGeneral;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Session;
 
 final class ListController extends Controller
 {
+    /**
+     * @var \App\Http\Controllers\UserController
+     */
     private $userController;
+
+    /**
+     * @var JsonGeneral
+     */
     private $jsonGeneral;
 
     public function __construct(UserController $userController, JsonGeneral $jsonGeneral)
@@ -37,7 +45,7 @@ final class ListController extends Controller
     public function index()
     {
         $returnList = [];
-        $list = DB::select('select * from act WHERE state = ?', [0]);
+        $list = Act_model::where('state', 0)->get();
         foreach ($list as $item) {
             $creator = $this->userController->get_username_by_uid($item->creator_uid);
             $people = [];
@@ -60,20 +68,22 @@ final class ListController extends Controller
                 'state' => $item->state
             ];
         }
-
-        // 其实response应该封装进lib,但是先算了吧
-        return response()->json($returnList);
+        return $this->jsonGeneral->show_success($returnList);
     }
 
     /**
      * 获取一个订单的具体信息
      *
      * @param $id
+     * @return mixed
      */
     public function detail($id)
     {
-        $list = DB::select('select * from act WHERE act_id = ?', [$id]);
-        $item = $list[0];
+        $item = Act_model::find($id);
+        if (empty($item)) {
+            return $this->jsonGeneral->show_error('id not found');
+        }
+
         $creator = $this->userController->get_username_by_uid($item->creator_uid);
         $people = [];
         if ($item->people1_uid !== -1) {
@@ -94,64 +104,91 @@ final class ListController extends Controller
             'expectedNum' => $item->expectedNumber,
             'state' => $item->state
         ];
-
-        // 其实response应该封装进lib,但是先算了吧
-        return response()->json($returnItem);
+        return $this->jsonGeneral->show_success($returnItem);
     }
 
     /**
      * 创建一个订单
      *
-     * @param info
-     * @return bool->status
+     * @param $request
+     * @return mixed
      */
-    public function add()
+    public function add(Request $request)
     {
-        //$creator = Input::get('creator');
-
-        //$state = Input::get('state');
-        //$people[] = Input::get('people');
-
-        $creator_wechat_openid = Input::get('creator');
-        $name = Input::get('name');
-        $from = Input::get('from');
-        $to = Input::get('to');
-        $expectedNumber = Input::get('expectedNum');
-        if ($this->userController->get_uid_by_wechat_id($creator_wechat_openid)) {
-            try {
-                DB::table('act')->insert([
-                    'name' => $name,
-                    'creator_uid' => $this->userController->get_uid_by_wechat_id($creator_wechat_openid),
-                    'people1_uid' => -1,
-                    'people2_uid' => -1,
-                    'people3_uid' => -1,
-                    'from' => $from,
-                    'to' => $to,
-                    'expectedNumber' => $expectedNumber,
-                    'state' => 0,
-                ]);
-                return $this->jsonGeneral->show_success();  //Use redirect and session ?
-            } catch (Exception $e) {
-                return $this->jsonGeneral->show_error("Database error");
-            }
-        } else {
-            return $this->jsonGeneral->show_error("Invalid wechat_id");
-        }
-
-
+        $act = new Act_model();
+        $act->creator_uid = $this->userController->get_uid_by_wxid($request->session()->get('wx_id'));
+        $act->name = $request->input('name');
+        $act->from = $request->input('from');
+        $act->to = $request->input('to');
+        $act->expectedNumber = $request->input('expectedNum');
+        $act->people1_uid = -1;
+        $act->people2_uid = -1;
+        $act->people3_uid = -1;
+        $act->state = 0;
+        $act->save();
+        return $this->jsonGeneral->show_success($act);
     }
 
     /**
      * 更新一个订单
      * @todo
      * @param $id
-     * @param $info
+     * @param mixed
      */
-    public function update()  //Post
+    public function creatorUpdate(Request $request)  //Post
     {
-        $act_id = Input::get('act_id');
-        $info = Input::get('info');
-        return Redirect::to('list/get');  //Temporarily redirect to list/get
+        $act_id = $request->input('act_id');
+        $result = Act_model::where('act_id', $act_id)->get()->first();
+        if (!$result) {
+            return $this->jsonGeneral->show_error('Invalid act id');
+        }
+        $item = Act_model::find($act_id);
+        $name = Input::get('name');
+        $from = Input::get('from');
+        $to = Input::get('to');
+        $expectedNumber = Input::get('expectedNumber');
+        $state = Input::get('state');
+        if ($name) {
+            DB::table('act')->where('act_id',$act_id)->update(['name' => $name]);
+        }
+        if ($from) {
+            DB::table('act')->where('act_id',$act_id)->update(['from' => $from]);
+        }
+        if ($to) {
+            DB::table('act')->where('act_id',$act_id)->update(['to' => $to]);
+        }
+        if ($expectedNumber >= $item->expectedNumber){
+            DB::table('act')->where('id',$id)->update(['expectedNumber' => $expectedNumber]);
+        }
+        if ($state===0 || $state===1) {
+            DB::table('act')->where('act_id',$act_id)->update(['state' => $state]);
+        }
+        $act = Act_model::where('act_id', $act_id)->get()->first();
+        return $this->jsonGeneral->show_success($act);
+    }
+
+    public  function peopleDropout(Request $request)
+    {
+        $act_id = $request->input('act_id');
+        $people_uid = $this->userController->get_uid_by_wxid($request->session()->get('wx_id'));
+        $act = Act_model::find($act_id);
+        if (empty($act)) {
+            return $this->jsonGeneral->show_error();
+        }
+
+        switch ($people_uid) {
+            case $item->people1_uid :
+                DB::table('act')->where('id',$id)->update(['people1_uid' => -1]);
+                break;
+            case $item->people2_uid :
+                DB::table('act')->where('id',$id)->update(['people2_uid' => -1]);
+                break;
+            case $item->people3_uid :
+                DB::table('act')->where('id',$id)->update(['people3_uid' => -1]);
+                break;
+            default :
+                return $this->jsonGeneral->show_error("Invalid User");
+        }
     }
 
     /**
@@ -161,11 +198,14 @@ final class ListController extends Controller
      *
      * @todo
      * @param $id
-     * @return status
+     * @return mixed
      */
     public function remove($id)
     {
+        return $this->jsonGeneral->show_error('Not supported');
+
         // remove according to id.
+        /*
         try {
             $res = DB::delete('delete from act WHERE act_id = ?', [$id]);  //The other act_id(s) will not change
         } catch (Exception $e) {
@@ -175,6 +215,6 @@ final class ListController extends Controller
             return $this->jsonGeneral->show_success(); //Use redirect and sessions?
         } else {
             return $this->jsonGeneral->show_error("Invalid act id");
-        }
+        }*/
     }
 }

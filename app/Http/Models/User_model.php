@@ -8,13 +8,17 @@
 
 namespace App\Http\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-final class User_model extends Model
+final class User_model extends Authenticatable
 {
-    public function __construct()
-    {
-        parent::__construct();
-        // do something
-    }
+    /**
+     * @var string
+     */
+    protected $table = "users";
+
+    /**
+     * @var string
+     */
+    protected $primaryKey = "uid";
 }
