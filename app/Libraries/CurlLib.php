@@ -25,7 +25,7 @@ final class CurlLib
         $url_ch = curl_init();
         curl_setopt($url_ch, CURLOPT_URL, $url);
         curl_setopt($url_ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($url_ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($url_ch, CURLOPT_CONNECTTIMEOUT, $timeout);
         $data = curl_exec($url_ch);
         curl_close($url_ch);
         $json = json_decode($data, true);
