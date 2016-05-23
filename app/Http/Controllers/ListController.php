@@ -170,25 +170,27 @@ final class ListController extends Controller
     public  function peopleDropout(Request $request)
     {
         $act_id = $request->input('act_id');
-        $people_uid = $this->userController->get_uid_by_wxid($request->session()->get('wx_id'));
+        $people_uid = $request->input('people_uid');
         $act = Act_model::find($act_id);
         if (empty($act)) {
             return $this->jsonGeneral->show_error();
         }
 
-        switch ($people_uid) {
-            case $item->people1_uid :
-                DB::table('act')->where('id',$id)->update(['people1_uid' => -1]);
+        switch (intval($people_uid)) {
+            case $act->people1_uid :
+                DB::table('act')->where('act_id',$act_id)->update(['people1_uid' => -1]);
                 break;
-            case $item->people2_uid :
-                DB::table('act')->where('id',$id)->update(['people2_uid' => -1]);
+            case $act->people2_uid :
+                DB::table('act')->where('act_id',$act_id)->update(['people2_uid' => -1]);
                 break;
-            case $item->people3_uid :
-                DB::table('act')->where('id',$id)->update(['people3_uid' => -1]);
+            case $act->people3_uid :
+                DB::table('act')->where('act_id',$act_id)->update(['people3_uid' => -1]);
                 break;
             default :
                 return $this->jsonGeneral->show_error("Invalid User");
         }
+        $act = Act_model::find($act_id);
+        return $this->jsonGeneral->show_success($act);
     }
 
     /**

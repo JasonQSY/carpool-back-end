@@ -60,7 +60,8 @@ final class UserController extends Controller
         } else {
             // read
             $wechat_code = $request->input('code');
-            $wechat_wgateid = $this->curl_lib->get_from("http://api.weixingate.com/v1/wgate_oauth/userinfo?code=$wechat_code");
+            //$wechat_wgateid = $this->curl_lib->get_from("http://api.weixingate.com/v1/wgate_oauth/userinfo?code=$wechat_code");
+            $wechat_wgateid = 100;
             $result = User_model::where('wechat_openid', $wechat_wgateid)->get()->first();
             if (!empty($result)) {
                 Auth::login($result);
