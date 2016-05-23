@@ -21,8 +21,8 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();*/
             $table->increments('uid');
-            $table->string('username', 20);
-            $table->string('email');
+            $table->string('username', 20)->nullable();
+            $table->string('email')->nullable();
             $table->string('wechat_openid');
             $table->string('password', 64);
             $table->rememberToken();

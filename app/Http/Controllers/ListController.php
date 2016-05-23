@@ -10,7 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Models\Act_model;
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
@@ -168,6 +168,8 @@ final class ListController extends Controller
         if ($state===0 || $state===1) {
             DB::table('act')->where('id',$id)->update(['state' => $state]);
         }
+        $act = Act_model::find($act_id);
+        return $this->jsonGeneral->show_success($act);
     }
 
     /**
@@ -198,6 +200,9 @@ final class ListController extends Controller
             default :
                 return $this->jsonGeneral->show_error("Invalid User");
         }
+
+        $act = Act_model::find($act_id);
+        return $this->jsonGeneral->show_success($act);
     }
 
     /**
