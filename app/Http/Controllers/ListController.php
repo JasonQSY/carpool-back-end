@@ -66,6 +66,7 @@ final class ListController extends Controller
                 $people[] = $this->userController->get_username_by_uid($item->people3_uid);;
             }
             $returnList[] = [
+                'act_id' => $item->act_id,
                 'creator' => $creator,
                 'name' => $item->name,
                 'people' => $people,

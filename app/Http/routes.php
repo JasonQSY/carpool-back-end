@@ -10,5 +10,5 @@ Route::group(['middleware' => ['web']], function()
     Route::post('list/add', 'ListController@add');
     Route::post('list/update', 'ListController@creatorUpdate');
     Route::get('list/drop', 'ListController@peopleDropout');
-    Route::get('user/profile', 'UserController@profile');
+    Route::post('user/profile', 'UserController@profile');
 });
