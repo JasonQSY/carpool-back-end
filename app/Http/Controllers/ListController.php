@@ -32,6 +32,12 @@ final class ListController extends Controller
      */
     private $jsonGeneral;
 
+    /**
+     * ListController constructor.
+     *
+     * @param \App\Http\Controllers\UserController $userController
+     * @param JsonGeneral $jsonGeneral
+     */
     public function __construct(UserController $userController, JsonGeneral $jsonGeneral)
     {
         $this->userController = $userController;
@@ -116,6 +122,9 @@ final class ListController extends Controller
      */
     public function add(Request $request)
     {
+        //$this->middleware('auth');
+        //return $this->jsonGeneral->show_success();
+
         $act = new Act_model();
         $act->creator = $request->user()->uid;
         $act->name = $request->input('name');
@@ -132,9 +141,8 @@ final class ListController extends Controller
 
     /**
      * 更新一个订单
-     * @todo
-     * @param $id
-     * @param $info
+     *
+     * @param $request
      */
     public function creatorUpdate(Request $request)  //Post
     {
@@ -162,6 +170,12 @@ final class ListController extends Controller
         }
     }
 
+    /**
+     * 离开订单
+     *
+     * @param Request $request
+     * @return mixed
+     */
     public  function peopleDropout(Request $request)
     {
         $act_id = $request->input('act_id');
@@ -191,9 +205,8 @@ final class ListController extends Controller
      *
      * 刚开始有什么好移除的吗,我懒得写了
      *
-     * @todo
      * @param $id
-     * @return mixed
+     * @return bool
      */
     public function remove($id)
     {
