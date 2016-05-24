@@ -86,7 +86,7 @@ final class UserController extends Controller
     private function register($wechat_wgateid)
     {
         $user = new User_model();
-        $user->wechat_wgateid = $wechat_wgateid;
+        $user->wechat_openid = $wechat_wgateid;
         $user->save();
     }
 
