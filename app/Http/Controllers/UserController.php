@@ -94,10 +94,10 @@ final class UserController extends Controller
     {
         $user = $request->user();
         $data = [];
-        if (!empty($user->name)) {
-            $data['name'] = $user->name;
+        if (!empty($user->username)) {
+            $data['username'] = $user->username;
         } else {
-            $data['name'] = [];
+            $data['username'] = [];
         }
         if (!empty($user->email)) {
             $data['email'] = $user->email;
