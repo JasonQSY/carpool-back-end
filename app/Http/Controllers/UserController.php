@@ -39,7 +39,7 @@ final class UserController extends Controller
      * @param CurlLib $curlLib
      */
     public function __construct(JsonGeneral $jsonGeneral, CurlLib $curlLib)
-    {
+
         $this->jsonGeneral = $jsonGeneral;
         $this->curl_lib = $curlLib;
     }
@@ -52,17 +52,17 @@ final class UserController extends Controller
      */
     public function login(Request $request)
     {
-        if (empty($request->input('code'))) {
+		if (!$request->has('code')) {
             // redirect
-            $this_url = urlencode($request->path());
-            $gate_url = "http://www.weixingate.com/api/v1/wgate_oauth?back=$this_url&force=1";
-            redirect($gate_url);
+            $this_url = urlencode($request->url());
+			$gate_url = "http://www.weixingate.com/api/v1/wgate_oauth?back=$this_url&force=1";
+            return redirect($gate_url);
         } else {
             // read
             $wechat_code = $request->input('code');
-            $wechat_wgateid = $this->curl_lib->get_from("http://api.weixingate.com/v1/wgate_oauth/userinfo?code=$wechat_code");
+			$wechat_wgateid = $this->curl_lib->get_from("http://api.weixingate.com/v1/wgate_oauth/userinfo?code=$wechat_code");
             $result = User_model::where('wechat_openid', $wechat_wgateid)->get()->first();
-            if (!empty($result)) {
+			if (!empty($result)) {
                 //Auth::loginUsingId($result->uid);
                 Auth::login($result);
                 $session = Session();
