@@ -39,7 +39,7 @@ final class UserController extends Controller
      * @param CurlLib $curlLib
      */
     public function __construct(JsonGeneral $jsonGeneral, CurlLib $curlLib)
-
+    {
         $this->jsonGeneral = $jsonGeneral;
         $this->curl_lib = $curlLib;
     }
